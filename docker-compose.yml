@@ -1,0 +1,41 @@
+version: "2"
+
+volumes:
+  pg_data:
+    driver: local
+
+services:
+
+  composer:
+    image: composer
+    volumes:
+      - ./:/app
+    command: composer install --ignore-platform-reqs
+
+  test:
+    build:
+      context: docker/php
+    volumes:
+      - ./:/app
+    tty: true
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=homestead
+      - DB_USERNAME=homestead
+      - DB_PASSWORD=secret
+    links:
+      - db
+    command: /app/vendor/bin/phpunit -c /app/phpunit.xml
+
+  db:
+    image: postgres
+    ports:
+      - 5433:5432
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=homestead
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=homestead
